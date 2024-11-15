@@ -1,0 +1,11 @@
+{
+  "products": {
+    "cart": "Add to Cart"
+  },
+  "text": {
+    "save": "Save",
+    "home": "Home",
+    "en": "English",
+    "fa": "Persian"
+  }
+}

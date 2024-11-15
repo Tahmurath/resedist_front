@@ -1,18 +1,22 @@
 import {getDictionary} from "@/app/[lang]/dictionaries";
-import('../dictionaries/en/common.json')
-import "./[lang]/globals.css";
 import { ReactNode } from 'react';
+import "./globals.css";
+
 
 export default async function RootLayout({
 children,
+    params,
 }: {
-    children: React.ReactNode
+    children: ReactNode;
+    params: { lang: string };
 }) {
 
-    const dict = await getDictionary("en")
+    const { lang } = params;
+    const dict = await getDictionary(lang)
     return (
         <html lang="en">
         <body>{children}</body>
+        <button>{dict.text.save}</button>
         </html>
     )
 }
