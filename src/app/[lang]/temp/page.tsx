@@ -27,3 +27,4 @@ export async function generateStaticParams() {
         // اگر زبان‌های بیشتری دارید، آن‌ها را به اینجا اضافه کنید
     ];
 }
+

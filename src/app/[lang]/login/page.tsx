@@ -1,3 +1,5 @@
+
+
 export default function Example() {
     return (
         <>
@@ -84,6 +86,7 @@ export default function Example() {
     )
 }
 
+
 export async function generateStaticParams() {
     return [
         { lang: 'en' },
@@ -91,3 +94,4 @@ export async function generateStaticParams() {
         // اگر زبان‌های بیشتری دارید، آن‌ها را به اینجا اضافه کنید
     ];
 }
+
