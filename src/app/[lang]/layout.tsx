@@ -16,7 +16,7 @@ children,
     return (
         <html lang="en">
         <body>{children}</body>
-        <button>{dict.text.save}</button>
+        {/*<button>{dict.text.save}</button>*/}
         </html>
     )
 }
