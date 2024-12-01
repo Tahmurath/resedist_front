@@ -1,7 +1,7 @@
 'use client'
 
-import {getDictionary} from "@/app/[lang]/dictionaries";
-import('../dictionaries/en/common.json')
+import {getDictionary} from "@/app/(panel)/[lang]/dictionaries";
+import('../../dictionaries/en/common.json')
 import "./globals.css";
 
 import {ReactNode, useState} from 'react';
@@ -9,7 +9,7 @@ import {Bars3Icon, XMarkIcon} from "@heroicons/react/24/outline";
 import {Dialog, DialogPanel, PopoverGroup} from "@headlessui/react";
 import Link from "next/link";
 
-export default async function RootLayout({
+export default function RootLayout({
 children,
 }: {
     children: React.ReactNode
