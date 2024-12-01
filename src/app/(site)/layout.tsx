@@ -1,10 +1,11 @@
 'use client'
 
-import {getDictionary} from "@/app/(panel)/[lang]/dictionaries";
-import('../../dictionaries/en/common.json')
-import "./globals.css";
+import en from "@/dictionaries/en/common.json"
+import fa from "@/dictionaries/fa/common.json"
+import "@/app/globals.css";
 
 import {ReactNode, useState} from 'react';
+import React from "react";
 import {Bars3Icon, XMarkIcon} from "@heroicons/react/24/outline";
 import {Dialog, DialogPanel, PopoverGroup} from "@headlessui/react";
 import Link from "next/link";
@@ -15,7 +16,14 @@ children,
     children: React.ReactNode
 }) {
 
-    //const dict = await getDictionary("en")
+    const [lang, setLang] = useState("en");
+    const dictionary = lang === "en" ? en : fa;
+
+    const toggleLanguage = () => {
+        setLang((prevLang) => (prevLang === "en" ? "fa" : "en"));
+    };
+
+    //const dict = getDictionary("en")
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     return (
         <html lang="en">
@@ -46,22 +54,24 @@ children,
                     <PopoverGroup className="hidden lg:flex lg:gap-x-12">
 
                         <Link href={"/"} className="text-sm/6 font-semibold text-gray-900">
-                            Home
+                            {dictionary.text.home}
                         </Link>
 
                         <Link href={"/en/dashboard"} className="text-sm/6 font-semibold text-gray-900">
-                            Dashboard
+                            {dictionary.text.dashboard}
                         </Link>
                         <a href="#" className="text-sm/6 font-semibold text-gray-900">
                             Marketplace
                         </a>
                         <a href="#" className="text-sm/6 font-semibold text-gray-900">
-                            Company
+                            <button onClick={toggleLanguage}>
+                                {lang === "en" ? "Switch to Persian" : "Switch to English"}
+                            </button>
                         </a>
                     </PopoverGroup>
                     <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                        <Link href={"/en/login"} className="text-sm/6 font-semibold text-gray-900">
-                            Log in <span aria-hidden="true">&rarr;</span>
+                    <Link href={"/en/login"} className="text-sm/6 font-semibold text-gray-900">
+                            {dictionary.text.login} <span aria-hidden="true">&rarr;</span>
                         </Link>
                     </div>
                 </nav>
@@ -115,7 +125,7 @@ children,
                                         href={"/en/login"}
                                         className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                                     >
-                                        Log in
+                                        {dictionary.text.login}
                                     </Link>
                                 </div>
                             </div>
@@ -130,5 +140,5 @@ children,
 
         </body>
         </html>
-)
+    )
 }
