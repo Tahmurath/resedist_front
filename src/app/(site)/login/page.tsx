@@ -1,6 +1,181 @@
-
+"use client"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import React, { useState,useEffect } from "react";
+import { toast } from "@/hooks/use-toast"
+// import { ToastAction } from "@/components/ui/toast"
+import { Button } from "@/components/ui/button"
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 
 export default function Example() {
+
+
+    const [error, setError] = useState<any>(null);
+
+    const FormSchema = z.object({
+        username: z.string().min(2, {
+            message: "Username must be at least 2 characters.",
+        }),
+        password: z.string().min(2, {
+            message: "Password must be at least 2 characters.",
+        }),
+    })
+
+    const saveTokenToCookie = (token) => {
+        document.cookie = `Bearer=${token}; max-age=${7 * 24 * 60 * 60}`;
+    };
+
+    const getTokenFromCookie = () => {
+        const cookies = document.cookie.split('; ');
+        const tokenCookie = cookies.find((row) => row.startsWith('Bearer='));
+        //console.info(tokenCookie.split('=')[1])
+        return tokenCookie ? tokenCookie.split('=')[1] : null;
+    };
+
+    async function getUser() {
+        //setLoading(true);
+        setError(null); // پاک کردن خطای قبلی
+
+        const token = getTokenFromCookie()
+
+        try {
+            const res = await fetch("http://localhost:8080/api/v1/auth/user?" + new Date().getTime(),
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`, // ست کردن هدر Authorization
+                    }
+                }
+            );
+            if (!res.ok) {
+                throw new Error("Network response was not ok");
+            }
+            const data = await res.json();
+
+            // toastaction({messagetxt:data.message})
+            //toastaction({messagetxt:data.user.Email})
+            console.info(data)
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setError("خطا در دریافت داده‌ها. لطفاً بعداً تلاش کنید.");
+        } finally {
+            //setLoading(false);
+        }
+    }
+
+    function InputForm({username,password}:{username: string,password: string}) {
+
+        const form = useForm<z.infer<typeof FormSchema>>({
+            resolver: zodResolver(FormSchema),
+            defaultValues: {
+                username: username,
+                password: password,
+            },
+        })
+
+        function onSubmit(data: z.infer<typeof FormSchema>) {
+            //alert(JSON.stringify(data, null, 2))
+
+            //const token = getTokenFromCookie()
+            fetch("http://127.0.0.1:8080/api/v1/auth/login", {
+                method: "POST",
+                body: JSON.stringify({
+                    email: data.username,
+                    password: data.password
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                    //'Authorization': `Bearer ${token}`,
+                }
+            })
+                .then((response) => response.json())
+                .then((json) =>
+                {
+                    console.log(json)
+                    saveTokenToCookie(json.token)
+                    toast({
+                        title: "You submitted the following values:",
+                        description: (
+                            <pre className="mt-2 w rounded-md bg-slate-950 p-4">
+                        <code className="text-white">{json.message}</code>
+                      </pre>
+                        ),
+                    })
+                });
+
+            toast({
+                title: "You submitted the following values:",
+                description: (
+                    <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+              <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+            </pre>
+                ),
+            })
+        }
+
+        return (
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="block text-sm/6 font-medium text-gray-900">Username</FormLabel>
+
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field}
+                                        // type="text"
+                                        // value={inputValue}
+                                        // onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
+                                    />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your public display name.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="block text-sm/6 font-medium text-gray-900">password</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="shadcn" {...field}
+                                        // type="text"
+                                        // value={inputValue2}
+                                        // onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue2(e.target.value)}
+                                    />
+                                </FormControl>
+                                <FormDescription>
+                                    This is your password.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <Button type="submit">Submit</Button>
+                </form>
+            </Form>
+        )
+    }
+
+
     return (
         <>
             {/*
@@ -24,64 +199,11 @@ export default function Example() {
                 </div>
 
                 <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                    <form action="#" method="POST" className="space-y-6">
-                        <div>
-                            <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
-                                Email address
-                            </label>
-                            <div className="mt-2">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    autoComplete="email"
-                                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className="flex items-center justify-between">
-                                <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
-                                    Password
-                                </label>
-                                <div className="text-sm">
-                                    <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                                        Forgot password?
-                                    </a>
-                                </div>
-                            </div>
-                            <div className="mt-2">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    autoComplete="current-password"
-                                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <button
-                                type="submit"
-                                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                            >
-                                Sign in
-                            </button>
-                        </div>
-                    </form>
-
-                    <p className="mt-10 text-center text-sm/6 text-gray-500">
-                        Not a member?{' '}
-                        <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                            Start a 14 day free trial
-                        </a>
-                    </p>
+                    <InputForm password={""} username={''}></InputForm>
+                    <Button onClick={getUser}>getJWT</Button>
                 </div>
             </div>
+
         </>
     )
 }
