@@ -5,10 +5,11 @@ import "@/app/globals.css";
 import { Toaster } from "@/components/ui/toaster"
 import Link from "next/link";
 import { usePathname } from 'next/navigation'
+import en from "@/dictionaries/en/common.json"
+import fa from "@/dictionaries/fa/common.json"
 
 
-
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
     Dialog,
     DialogBackdrop,
@@ -36,23 +37,9 @@ import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 // const pathname = usePathname()
 // console.info(pathname)
 
-const navigation = [
-    { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-    { name: 'Team', href: '/dashboard', icon: UsersIcon, current: false },
-    { name: 'Projects', href: '/en', icon: FolderIcon, current: false },
-    { name: 'Calendar', href: '/fa', icon: CalendarIcon, current: false },
-    { name: 'Documents', href: '/test', icon: DocumentDuplicateIcon, current: false },
-    { name: 'Reports', href: '#', icon: ChartPieIcon, current: false },
-]
-const teams = [
-    { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
-    { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },
-    { id: 3, name: 'Workcation', href: '#', initial: 'W', current: false },
-]
-const userNavigation = [
-    { name: 'Your profile', href: '#' },
-    { name: 'Sign out', href: '#' },
-]
+
+
+
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -64,6 +51,48 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }>) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
+
+
+    const saveLangToCookie = (lang) => {
+        document.cookie = `lang=${lang}; max-age=${7 * 24 * 60 * 60}`;
+    };
+
+    const getLangFromCookie = () => {
+        if (typeof window !== "undefined") {
+            const cookies = document.cookie.split('; ');
+            const langCookie = cookies.find((row) => row.startsWith('lang='));
+            //console.info(tokenCookie.split('=')[1])
+            return langCookie ? langCookie.split('=')[1] : "en";
+        }
+        return null
+    };
+
+    const [lang, setLang] = useState(getLangFromCookie());
+    const dictionary = lang === "en" ? en : fa;
+
+    const navigation = [
+        { name: dictionary.text.home, href: '/', icon: HomeIcon, current: true },
+        { name: dictionary.text.dashboard, href: '/dashboard', icon: UsersIcon, current: false },
+        { name: 'Projects', href: '/', icon: FolderIcon, current: false },
+        { name: 'Calendar', href: '/', icon: CalendarIcon, current: false },
+        { name: 'Documents', href: '/', icon: DocumentDuplicateIcon, current: false },
+        { name: 'Reports', href: '#', icon: ChartPieIcon, current: false },
+    ]
+    const teams = [
+        { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
+        { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },
+        { id: 3, name: 'Workcation', href: '#', initial: 'W', current: false },
+    ]
+    const userNavigation = [
+        { name: 'Your profile', href: '#' },
+        { name: 'Sign out', href: '#' },
+    ]
+
+    const toggleLanguage = () => {
+
+        setLang((prevLang) => (prevLang === "en" ? "fa" : "en"));
+        saveLangToCookie(lang === "en" ? "fa" : "en")
+    };
 
 
     const pathname = usePathname()
@@ -309,11 +338,17 @@ export default function DashboardLayout({
                                 <div className="flex items-center gap-x-4 lg:gap-x-6">
                                     <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                                         <span className="sr-only">View notifications</span>
-                                        <BellIcon aria-hidden="true" className="h-6 w-6" />
+                                        <BellIcon aria-hidden="true" className="h-6 w-6"/>
+                                    </button>
+                                    <button onClick={toggleLanguage} type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+                                        {/*{lang === "en" ? "Switch to Persian" : "Switch to English"}*/}
+                                        <BellIcon aria-hidden="true" className="h-6 w-6"/>
                                     </button>
 
+
+
                                     {/* Separator */}
-                                    <div aria-hidden="true" className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
+                                    <div aria-hidden="true" className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"/>
 
                                     {/* Profile dropdown */}
                                     <Menu as="div" className="relative">
@@ -328,7 +363,7 @@ export default function DashboardLayout({
                         <span aria-hidden="true" className="ml-4 text-sm font-semibold leading-6 text-gray-900">
                           Tom Cook
                         </span>
-                        <ChevronDownIcon aria-hidden="true" className="ml-2 h-5 w-5 text-gray-400" />
+                        <ChevronDownIcon aria-hidden="true" className="ml-2 h-5 w-5 text-gray-400"/>
                       </span>
                                         </MenuButton>
                                         <MenuItems
@@ -355,7 +390,7 @@ export default function DashboardLayout({
                     <main className="py-10">
                         {/*<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">*/}
                         <div className="mx-auto px-4 sm:px-6 lg:px-8">
-                            {children}
+                        {children}
                         </div>
                         <Toaster />
                     </main>

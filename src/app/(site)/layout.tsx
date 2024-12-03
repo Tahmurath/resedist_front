@@ -16,11 +16,28 @@ children,
     children: React.ReactNode
 }) {
 
-    const [lang, setLang] = useState("en");
+
+    const saveLangToCookie = (lang) => {
+        document.cookie = `lang=${lang}; max-age=${7 * 24 * 60 * 60}`;
+    };
+
+    const getLangFromCookie = () => {
+        if (typeof window !== "undefined") {
+            const cookies = document.cookie.split('; ');
+            const langCookie = cookies.find((row) => row.startsWith('lang='));
+            //console.info(tokenCookie.split('=')[1])
+            return langCookie ? langCookie.split('=')[1] : "en";
+        }
+        return null
+    };
+
+    const [lang, setLang] = useState(getLangFromCookie());
     const dictionary = lang === "en" ? en : fa;
 
     const toggleLanguage = () => {
+
         setLang((prevLang) => (prevLang === "en" ? "fa" : "en"));
+        saveLangToCookie(lang === "en" ? "fa" : "en")
     };
 
     //const dict = getDictionary("en")
@@ -57,7 +74,7 @@ children,
                             {dictionary.text.home}
                         </Link>
 
-                        <Link href={"/en/dashboard"} className="text-sm/6 font-semibold text-gray-900">
+                        <Link href={"/dashboard"} className="text-sm/6 font-semibold text-gray-900">
                             {dictionary.text.dashboard}
                         </Link>
                         <a href="#" className="text-sm/6 font-semibold text-gray-900">
@@ -70,7 +87,7 @@ children,
                         </a>
                     </PopoverGroup>
                     <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    <Link href={"/en/login"} className="text-sm/6 font-semibold text-gray-900">
+                    <Link href={"/login"} className="text-sm/6 font-semibold text-gray-900">
                             {dictionary.text.login} <span aria-hidden="true">&rarr;</span>
                         </Link>
                     </div>
@@ -122,7 +139,7 @@ children,
                                 </div>
                                 <div className="py-6">
                                     <Link
-                                        href={"/en/login"}
+                                        href={"/login"}
                                         className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                                     >
                                         {dictionary.text.login}

@@ -87,11 +87,3 @@ export default function Example() {
 }
 
 
-export async function generateStaticParams() {
-    return [
-        { lang: 'en' },
-        { lang: 'fa' },
-        // اگر زبان‌های بیشتری دارید، آن‌ها را به اینجا اضافه کنید
-    ];
-}
-
