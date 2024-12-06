@@ -1,10 +1,14 @@
 "use client"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import React, { useState,useEffect } from "react";
-import { toast } from "@/hooks/use-toast"
+// import { toast } from "@/hooks/use-toast"
 // import { ToastAction } from "@/components/ui/toast"
+import { useToast } from "@/hooks/use-toast"
+import { ToastAction } from "@/components/ui/toast"
+import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -16,8 +20,22 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import decodeJWT, {getTokenFromCookie, getUserFromToken, isExpiredJwt, saveTokenToCookie} from "@/lib/jwt";
+import { useRouter } from 'next/navigation'
+import {Toaster} from "@/components/ui/toaster";
 
 export default function Example() {
+
+
+
+    const router = useRouter();
+    const token = isExpiredJwt()
+
+    useEffect(() => {
+        if (token) {
+            router.push('/dashboard');
+        }
+    }, [token, router]);
 
 
     const [error, setError] = useState<any>(null);
@@ -31,22 +49,13 @@ export default function Example() {
         }),
     })
 
-    const saveTokenToCookie = (token) => {
-        document.cookie = `Bearer=${token}; max-age=${7 * 24 * 60 * 60}`;
-    };
-
-    const getTokenFromCookie = () => {
-        const cookies = document.cookie.split('; ');
-        const tokenCookie = cookies.find((row) => row.startsWith('Bearer='));
-        //console.info(tokenCookie.split('=')[1])
-        return tokenCookie ? tokenCookie.split('=')[1] : null;
-    };
-
     async function getUser() {
         //setLoading(true);
         setError(null); // پاک کردن خطای قبلی
 
-        const token = getTokenFromCookie()
+        const token = isExpiredJwt()
+        const user = getUserFromToken()
+
 
         try {
             const res = await fetch("http://localhost:8080/api/v1/auth/user?" + new Date().getTime(),
@@ -63,8 +72,6 @@ export default function Example() {
             }
             const data = await res.json();
 
-            // toastaction({messagetxt:data.message})
-            //toastaction({messagetxt:data.user.Email})
             console.info(data)
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -102,26 +109,9 @@ export default function Example() {
                 .then((response) => response.json())
                 .then((json) =>
                 {
-                    console.log(json)
                     saveTokenToCookie(json.token)
-                    toast({
-                        title: "You submitted the following values:",
-                        description: (
-                            <pre className="mt-2 w rounded-md bg-slate-950 p-4">
-                        <code className="text-white">{json.message}</code>
-                      </pre>
-                        ),
-                    })
+                    router.push('/dashboard');
                 });
-
-            toast({
-                title: "You submitted the following values:",
-                description: (
-                    <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-            </pre>
-                ),
-            })
         }
 
         return (
@@ -178,14 +168,8 @@ export default function Example() {
 
     return (
         <>
-            {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
+            {!token ? (
+                <div>
             <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                     <img
@@ -203,7 +187,9 @@ export default function Example() {
                     <Button onClick={getUser}>getJWT</Button>
                 </div>
             </div>
-
+            <Toaster />
+                </div>
+            ) : null}
         </>
     )
 }

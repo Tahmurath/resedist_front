@@ -33,7 +33,9 @@ import {
     XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-
+import { useRouter } from 'next/navigation'; // استفاده از مسیر درست
+import { useEffect } from 'react';
+import {isExpiredJwt} from "@/lib/jwt";
 // const pathname = usePathname()
 // console.info(pathname)
 
@@ -52,9 +54,26 @@ export default function DashboardLayout({
 }>) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true); // شرط بعد از رندر کلاینت فعال می‌شود
+    }, []);
+
+    const router = useRouter();
+    const token = isExpiredJwt()
+
+    useEffect(() => {
+        if (!token) {
+            router.push('/login');
+
+        }
+    }, [token, router]);
+
 
     const saveLangToCookie = (lang) => {
+        if (typeof window !== "undefined") {
         document.cookie = `lang=${lang}; max-age=${7 * 24 * 60 * 60}`;
+        }
     };
 
     const getLangFromCookie = () => {
@@ -98,7 +117,8 @@ export default function DashboardLayout({
     const pathname = usePathname()
     // console.info(pathname)
 
-    return (
+
+        return (
         <>
             {/*
         This example requires updating your template:
@@ -109,6 +129,7 @@ export default function DashboardLayout({
       */}
             <html className="h-full bg-white">
             <body className="h-full" >
+            {token && isClient ? (
             <div>
                 <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
                     <DialogBackdrop
@@ -392,10 +413,11 @@ export default function DashboardLayout({
                         <div className="mx-auto px-4 sm:px-6 lg:px-8">
                         {children}
                         </div>
-                        <Toaster />
+
                     </main>
                 </div>
             </div>
+            ) : null} {/* اگر شرط درست نبود، هیچ چیزی رندر نمیشه */}
             </body>
             </html>
         </>

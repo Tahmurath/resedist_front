@@ -9,6 +9,9 @@ import React from "react";
 import {Bars3Icon, XMarkIcon} from "@heroicons/react/24/outline";
 import {Dialog, DialogPanel, PopoverGroup} from "@headlessui/react";
 import Link from "next/link";
+import decodeJWT from "@/lib/jwt";
+import { Toaster } from "@/components/ui/toaster"
+
 
 export default function RootLayout({
 children,
@@ -17,6 +20,9 @@ children,
 }) {
 
 
+    const jwtData = (jwt) => {
+        return decodeJWT(jwt)
+    }
     const saveLangToCookie = (lang) => {
         document.cookie = `lang=${lang}; max-age=${7 * 24 * 60 * 60}`;
     };
@@ -153,6 +159,7 @@ children,
         </div>
         <main className="py-10">
             {children}
+            <Toaster />
         </main>
 
         </body>
