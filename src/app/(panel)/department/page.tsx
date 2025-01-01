@@ -31,7 +31,15 @@ export default function Home() {
     const [error, setError] = useState<any>(null);
 
 
-    function InputForm({title,departmenttypeid,parentid}:{title: string,departmenttypeid: number,parentid:number}) {
+    function InputForm({
+                           title = "",
+                           departmenttypeid,
+                           parentid,
+                       }: {
+        title?: string; // می‌تواند خالی باشد
+        departmenttypeid?: number; // می‌تواند خالی باشد
+        parentid?: number; // می‌تواند خالی باشد
+    }) {
 
         const form = useForm<z.infer<typeof FormSchema>>({
             resolver: zodResolver(FormSchema),
@@ -140,7 +148,7 @@ export default function Home() {
               </div>
 
               <div>
-                  <InputForm title={""} departmenttypeid={''} parentid={''}></InputForm>
+                  <InputForm title={""} departmenttypeid={undefined} parentid={undefined}></InputForm>
               </div>
           </div>
 
