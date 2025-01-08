@@ -9,6 +9,23 @@ import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, Form
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {useRouter} from "next/navigation";
+import {toast} from "@/hooks/use-toast";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import {cn} from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react"
+
 
 export default function Home() {
 
@@ -26,6 +43,7 @@ export default function Home() {
         parentid: z.preprocess((value) => Number(value), z.number({
             message: "ParentID must be a number.",
         })),
+
     });
 
     const [error, setError] = useState<any>(null);
@@ -50,9 +68,34 @@ export default function Home() {
             },
         })
 
+        const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+        const [languages, setLanguages] = useState([]);
+        const [query, setQuery] = useState("");
+
+        useEffect(() => {
+            async function fetchLanguages(searchQuery = "") {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/v1/department/list?query=${searchQuery}`);
+                    const data = await response.json();
+                    setLanguages(data);
+                } catch (error) {
+                    console.error('Error fetching languages:', error);
+                }
+            }
+
+            fetchLanguages(query); // دریافت داده‌ها بر اساس عبارت جستجو
+        }, [query]);
+
         function onSubmit(data: z.infer<typeof FormSchema>) {
             //alert(JSON.stringify(data, null, 2))
-
+            toast({
+                title: "You submitted the following values:",
+                description: (
+                    <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+              <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+            </pre>
+                ),
+            })
             //const token = getTokenFromCookie()
             fetch("http://127.0.0.1:8080/api/v1/department/new", {
                 method: "POST",
@@ -100,18 +143,73 @@ export default function Home() {
                         control={form.control}
                         name="departmenttypeid"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="block text-sm/6 font-medium text-gray-900">departmenttypeid</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="departmenttypeid" {...field}/>
-                                </FormControl>
+                            <FormItem className="flex flex-col">
+                                <FormLabel>departmenttypeid</FormLabel>
+                                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                className={cn(
+                                                    "w-[200px] justify-between",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                                onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+                                            >
+                                                {field.value
+                                                    ? languages.find(
+                                                        (departmenttypeid) => departmenttypeid.value === field.value
+                                                    )?.label
+                                                    : "Select language"}
+                                                <ChevronsUpDown className="opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[200px] p-0">
+                                        <Command>
+                                            <CommandInput
+                                                placeholder="Search framework..."
+                                                className="h-9"
+                                                onValueChange={setQuery}
+                                            />
+                                            <CommandList>
+                                                <CommandEmpty>No framework found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {languages.map((departmenttypeid) => (
+                                                        <CommandItem
+                                                            value={departmenttypeid.label}
+                                                            key={departmenttypeid.value}
+                                                            onSelect={() => {
+                                                                form.setValue("departmenttypeid", departmenttypeid.value)
+                                                                setIsPopoverOpen(false);
+                                                            }}
+                                                        >
+                                                            {departmenttypeid.label}
+                                                            <Check
+                                                                className={cn(
+                                                                    "ml-auto",
+                                                                    departmenttypeid.value === field.value
+                                                                        ? "opacity-100"
+                                                                        : "opacity-0"
+                                                                )}
+                                                            />
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
                                 <FormDescription>
-                                    departmenttypeid
+                                    This is the language that will be used in the dashboard.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+
+
                     <FormField
                         control={form.control}
                         name="parentid"
