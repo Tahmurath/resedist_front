@@ -27,8 +27,8 @@ import {cn} from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react"
 
 interface DepType {
-    value: number;
-    label: string;
+    ID: number;
+    Title: string;
 }
 
 const token = isExpiredJwt()
@@ -70,18 +70,36 @@ function InputForm({
     const [depTypes, setDepTypes] = useState<DepType[]>([]);
     const [query, setQuery] = useState("");
 
+    // useEffect(() => {
+    //     async function fetchDepTypes(searchQuery = "") {
+    //         try {
+    //             const response = await fetch(`http://localhost:8080/api/v1/department-type?query=${searchQuery}`);
+    //             const data = await response.json();
+    //             setDepTypes(data);
+    //         } catch (error) {
+    //             console.error('Error fetching depTypes:', error);
+    //         }
+    //     }
+
+    //     fetchDepTypes(query); // دریافت داده‌ها بر اساس عبارت جستجو
+    // }, [query]);
     useEffect(() => {
         async function fetchDepTypes(searchQuery = "") {
             try {
-                const response = await fetch(`http://localhost:8080/api/v1/department/list?query=${searchQuery}`);
-                const data = await response.json();
-                setDepTypes(data);
+                const response = await fetch(`http://localhost:8080/api/v1/department-type?query=${searchQuery}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setDepTypes(data);
+                } else {
+                    console.error('Error: ', response.statusText);
+                }
             } catch (error) {
                 console.error('Error fetching depTypes:', error);
+                setDepTypes([]); // مقداردهی اولیه در صورت بروز خطا
             }
         }
-
-        fetchDepTypes(query); // دریافت داده‌ها بر اساس عبارت جستجو
+    
+        fetchDepTypes(query);
     }, [query]);
 
     function onSubmit(data: z.infer<typeof FormSchema>) {
@@ -95,7 +113,7 @@ function InputForm({
             ),
         })
         //const token = getTokenFromCookie()
-        fetch("http://127.0.0.1:8080/api/v1/department/new", {
+        fetch("http://127.0.0.1:8080/api/v1/department", {
             method: "POST",
             body: JSON.stringify({
                 title: data.title,
@@ -157,8 +175,8 @@ function InputForm({
                                         >
                                             {field.value
                                                 ? depTypes.find(
-                                                    (departmenttypeid) => departmenttypeid.value === field.value
-                                                )?.label
+                                                    (departmenttypeid) => departmenttypeid.ID === field.value
+                                                )?.Title
                                                 : "Select department type"}
                                             <ChevronsUpDown className="opacity-50" />
                                         </Button>
@@ -174,26 +192,30 @@ function InputForm({
                                         <CommandList>
                                             <CommandEmpty>No framework found.</CommandEmpty>
                                             <CommandGroup>
-                                                {depTypes.map((departmenttypeid) => (
-                                                    <CommandItem
-                                                        value={departmenttypeid.label}
-                                                        key={departmenttypeid.value}
-                                                        onSelect={() => {
-                                                            form.setValue("departmenttypeid", departmenttypeid.value)
-                                                            setIsPopoverOpen(false);
-                                                        }}
-                                                    >
-                                                        {departmenttypeid.label}
-                                                        <Check
-                                                            className={cn(
-                                                                "ml-auto",
-                                                                departmenttypeid.value === field.value
-                                                                    ? "opacity-100"
-                                                                    : "opacity-0"
-                                                            )}
-                                                        />
-                                                    </CommandItem>
-                                                ))}
+                                                {depTypes && depTypes.length > 0 ? (
+                                                    depTypes.map((departmenttypeid) => (
+                                                        <CommandItem
+                                                            value={departmenttypeid.Title}
+                                                            key={departmenttypeid.ID}
+                                                            onSelect={() => {
+                                                                form.setValue("departmenttypeid", departmenttypeid.ID);
+                                                                setIsPopoverOpen(false);
+                                                            }}
+                                                        >
+                                                            {departmenttypeid.Title}
+                                                            <Check
+                                                                className={cn(
+                                                                    "ml-auto",
+                                                                    departmenttypeid.ID === field.value
+                                                                        ? "opacity-100"
+                                                                        : "opacity-0"
+                                                                )}
+                                                            />
+                                                        </CommandItem>
+                                                    ))
+                                                ) : (
+                                                    <CommandItem>No data available</CommandItem>
+                                                )}
                                             </CommandGroup>
                                         </CommandList>
                                     </Command>
@@ -206,7 +228,6 @@ function InputForm({
                         </FormItem>
                     )}
                 />
-
 
                 <FormField
                     control={form.control}
