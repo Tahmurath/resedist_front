@@ -202,7 +202,7 @@ function InputForm({
                                                                 setIsPopoverOpen(false);
                                                             }}
                                                         >
-                                                            {departmenttypeid.Title}
+                                                            {departmenttypeid.ID}:{departmenttypeid.Title}
                                                             <Check
                                                                 className={cn(
                                                                     "ml-auto",
@@ -261,19 +261,15 @@ export default function Home() {
 
   return (
       <div className="flex-1 lg:max-w-2xl">
-          <h1>Department</h1>
-          <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-              <div className="sm:mx-auto sm:w-full sm:max-w-sm">
 
-                  <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
-                      add department
-                  </h2>
-              </div>
+          <h3 className=" text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+              Create a new Department
+          </h3>
 
-              <div>
-                  <InputForm title={""} departmenttypeid={undefined} parentid={undefined}></InputForm>
-              </div>
+          <div>
+              <InputForm title={""} departmenttypeid={undefined} parentid={undefined}></InputForm>
           </div>
+
       </div>
   );
 }
