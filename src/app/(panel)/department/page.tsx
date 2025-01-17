@@ -30,6 +30,12 @@ interface DepType {
     ID: number;
     Title: string;
 }
+interface Department {
+    ID: number;
+    Title: string;
+    DepartmentType: number;
+    Parent	: number;
+}
 
 const token = isExpiredJwt()
 
@@ -67,22 +73,12 @@ function InputForm({
     })
 
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const [isPopoverOpen2, setIsPopoverOpen2] = useState(false);
     const [depTypes, setDepTypes] = useState<DepType[]>([]);
+    const [departments, setDepartments] = useState<Department[]>([]);
     const [query, setQuery] = useState("");
 
-    // useEffect(() => {
-    //     async function fetchDepTypes(searchQuery = "") {
-    //         try {
-    //             const response = await fetch(`http://localhost:8080/api/v1/department-type?query=${searchQuery}`);
-    //             const data = await response.json();
-    //             setDepTypes(data);
-    //         } catch (error) {
-    //             console.error('Error fetching depTypes:', error);
-    //         }
-    //     }
 
-    //     fetchDepTypes(query); // دریافت داده‌ها بر اساس عبارت جستجو
-    // }, [query]);
     useEffect(() => {
         async function fetchDepTypes(searchQuery = "") {
             try {
@@ -100,6 +96,25 @@ function InputForm({
         }
     
         fetchDepTypes(query);
+    }, [query]);
+
+    useEffect(() => {
+        async function fetchDepartments(searchQuery = "") {
+            try {
+                const response = await fetch(`http://localhost:8080/api/v1/department?query=${searchQuery}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setDepartments(data);
+                } else {
+                    console.error('Error: ', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching depTypes:', error);
+                setDepartments([]); // مقداردهی اولیه در صورت بروز خطا
+            }
+        }
+
+        fetchDepartments(query);
     }, [query]);
 
     function onSubmit(data: z.infer<typeof FormSchema>) {
@@ -228,24 +243,81 @@ function InputForm({
                         </FormItem>
                     )}
                 />
-
                 <FormField
                     control={form.control}
                     name="parentid"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="block text-sm/6 font-medium text-gray-900">parentid</FormLabel>
-                            <FormControl>
-                                <Input placeholder="parentid" {...field}
-                                />
-                            </FormControl>
+                        <FormItem className="flex flex-col">
+                            <FormLabel>parentid</FormLabel>
+                            <Popover open={isPopoverOpen2} onOpenChange={setIsPopoverOpen2}>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className={cn(
+                                                "w-[200px] justify-between",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            onClick={() => setIsPopoverOpen2(!isPopoverOpen2)}
+                                        >
+                                            {field.value
+                                                ? departments.find(
+                                                    (parentid) => parentid.ID === field.value
+                                                )?.Title
+                                                : "Select parentid type"}
+                                            <ChevronsUpDown className="opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0">
+                                    <Command>
+                                        <CommandInput
+                                            placeholder="Search framework..."
+                                            className="h-9"
+                                            onValueChange={setQuery}
+                                        />
+                                        <CommandList>
+                                            <CommandEmpty>No framework found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {departments && departments.length > 0 ? (
+                                                    departments.map((parentid) => (
+                                                        <CommandItem
+                                                            value={parentid.Title}
+                                                            key={parentid.ID}
+                                                            onSelect={() => {
+                                                                form.setValue("parentid", parentid.ID);
+                                                                setIsPopoverOpen2(false);
+                                                            }}
+                                                        >
+                                                            {parentid.ID}:{parentid.Title}
+                                                            <Check
+                                                                className={cn(
+                                                                    "ml-auto",
+                                                                    parentid.ID === field.value
+                                                                        ? "opacity-100"
+                                                                        : "opacity-0"
+                                                                )}
+                                                            />
+                                                        </CommandItem>
+                                                    ))
+                                                ) : (
+                                                    <CommandItem>No data available</CommandItem>
+                                                )}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                             <FormDescription>
-                                parentid
+                                This is the department type that will be used in the dashboard.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+
+
                 <Button type="submit">Submit</Button>
             </form>
         </Form>
